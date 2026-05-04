@@ -1,0 +1,87 @@
+{
+  "meta": {
+    "title": "Hermes Agent vs OpenClaw Stability Comparison",
+    "data_date": "2026-05-04",
+    "methodology": "GitHub API raw stats normalized per star/fork sample. Labels sampled from first 100 issues."
+  },
+  "projects": {
+    "hermes_agent": {
+      "name": "Hermes Agent",
+      "org": "NousResearch",
+      "repo": "NousResearch/hermes-agent",
+      "website": "https://hermes-agent.nousresearch.com/",
+      "stars": 132529,
+      "forks": 20139,
+      "open_issues": 8150,
+      "total_issues": 4683,
+      "closed_issues": 1742,
+      "issue_close_rate_pct": 37.2,
+      "merged_prs_in_sample": 85,
+      "closed_prs_in_sample": 100,
+      "pr_merge_rate_pct": 85,
+      "last_commit": "2026-05-04",
+      "latest_release": "v2026.4.30",
+      "created_at": "2025-07-22",
+      "labels_sample": {
+        "type/bug": 68,
+        "type/feature": 19,
+        "type/docs": 4,
+        "P0": 1,
+        "P1": 3,
+        "P2": 39,
+        "P3": 55
+      }
+    },
+    "openclaw": {
+      "name": "OpenClaw",
+      "org": "openclaw",
+      "repo": "openclaw/openclaw",
+      "website": "https://openclaw.ai/",
+      "stars": 368249,
+      "forks": 75827,
+      "open_issues": 6865,
+      "total_issues": 33837,
+      "closed_issues": 30410,
+      "issue_close_rate_pct": 89.9,
+      "merged_prs_in_sample": 49,
+      "closed_prs_in_sample": 100,
+      "pr_merge_rate_pct": 49,
+      "last_commit": "2026-05-04",
+      "latest_release": "v2026.5.4-beta.1",
+      "created_at": "2025-11-24",
+      "labels_sample": {
+        "bug": 10,
+        "regression": 7,
+        "enhancement": 4,
+        "docs": 15,
+        "size:XS": 14,
+        "size:S": 16,
+        "size:M": 18,
+        "size:L": 4,
+        "size:XL": 3
+      }
+    }
+  },
+  "normalized": {
+    "open_issues_per_1000_stars": {
+      "hermes_agent": 61.5,
+      "openclaw": 18.6
+    },
+    "forks_per_100_stars": {
+      "hermes_agent": 15.2,
+      "openclaw": 20.6
+    },
+    "bug_label_rate_pct": {
+      "hermes_agent": 68,
+      "openclaw": 17
+    }
+  },
+  "rankings": {
+    "overall_stability_score": {
+      "openclaw": -713.20,
+      "hermes_agent": -3092.84
+    },
+    "winner": "OpenClaw",
+    "notes": "Score based on weighted model: lower open issues per star, lower bug density, higher forks per star. Hermes wins on PR merge rate."
+  }
+}
