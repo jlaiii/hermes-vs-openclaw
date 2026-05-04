@@ -1,14 +1,14 @@
 # Hermes Agent vs OpenClaw: Stability & "It Just Works" Deep Dive
 
 > **TL;DR — Rankings (overall "just works" score):**
-> 1. **OpenClaw** — Lower normalized defect density, faster issue triage at scale, massive plugin ecosystem, but higher setup complexity.
-> 2. **Hermes Agent** — Simpler one-line install, stronger self-improving learning loop, but higher open-issue density per user and heavier bug label ratio in sample.
+> 1. **OpenClaw** — Lower normalized defect density, dramatically higher bug/issue close rates, massive plugin ecosystem. Heavy bot-driven triage inflates some metrics.
+> 2. **Hermes Agent** — Simpler install, zero stale issues, strong learning loop, but lower bug close rate and higher open-issue density per user.
 
 ---
 
 ## Quick Links
 
-- **Project Home:** https://jlaiii.github.io/hermes-vs-openclaw/
+- **Live Website:** https://jlaiii.github.io/hermes-vs-openclaw/
 - **Hermes Agent:** https://hermes-agent.nousresearch.com/ | [GitHub](https://github.com/NousResearch/hermes-agent)
 - **OpenClaw:** https://openclaw.ai/ | [GitHub](https://github.com/openclaw/openclaw)
 
@@ -20,40 +20,58 @@ This project collects and normalizes real-world data to answer one question for 
 
 **"Which one is more stable and just works, taking community size into account?"**
 
+All data is pulled directly from the GitHub API and verified. Where the API returns misleading numbers (e.g. `open_issues_count` includes PRs), we use the Search API to get the real counts.
+
 ---
 
-## Dataset
-
-### Raw GitHub Stats (as of 2026-05-04)
+## Verified GitHub Stats (as of 2026-05-04)
 
 | Metric | Hermes Agent | OpenClaw |
 |--------|-------------|----------|
 | Stars | 132,529 | 368,249 |
 | Forks | 20,139 | 75,827 |
-| Open Issues | 8,150 | 6,865 |
-| Total Historic Issues | 4,683 | 33,837 |
-| Closed Historic Issues | 1,742 | 30,410 |
-| Issue Close Rate | ~37.2% | ~89.9% |
-| Merged PRs (sample of 100 closed) | 85% | 49% |
-| Last Commit | 2026-05-04 | 2026-05-04 |
+| Open Issues (actual) | **2,944** | **3,427** |
+| Open PRs | 5,218 | 3,442 |
+| Total Issues (all time) | 4,686 | 33,848 |
+| Closed Issues | 1,742 | 30,421 |
+| Issue Close Rate | 37.2% | **89.9%** |
+| Bug Issues (all time) | 2,232 | 10,399 |
+| Closed Bug Issues | 746 | 9,899 |
+| Bug Close Rate | 33.4% | **95.2%** |
+| Contributors | 375 | 366 |
+| Commits (last 30 days) | 3,969 | **14,565** |
+| New Issues (last 7 days) | 717 | 2,018 |
+| Closed Issues (last 7 days) | 289 | **2,170** |
+| Median Issue Close Time | **9.2 days** | 0.1 days* |
+| Stale Open Issues (>90 days) | **0%** | 49% |
+| Oldest Open Issue | 67 days | 123 days |
 | Latest Release | v2026.4.30 | v2026.5.4-beta.1 |
+| Last Commit | 2026-05-04 | 2026-05-04 |
 | Created | 2025-07-22 | 2025-11-24 |
 
-### Normalized Stability Metrics
+*OpenClaw's 0.1 day median is heavily driven by `clawsweeper[bot]` auto-closing issues. Human-triaged issues may differ.
 
-Stars are a rough proxy for user base. Normalizing by stars gives a fairer picture of defect density and maintenance health.
+### Key Discovery: `open_issues_count` Lies
+
+GitHub's `open_issues_count` field includes **open pull requests**. For Hermes, the API reported 8,161 "open issues" but only **2,944** were actual issues — the other 5,218 were open PRs. For OpenClaw, 6,865 API count = 3,427 issues + 3,442 PRs. We use the Search API (`is:issue`) for accurate counts.
+
+---
+
+## Normalized Stability Metrics
+
+Normalizing by stars gives a fairer picture of defect density and maintenance health.
 
 | Metric | Hermes Agent | OpenClaw | Better |
 |--------|-------------|----------|--------|
-| Open Issues per 1,000 Stars | 61.5 | 18.6 | OpenClaw |
-| Forks per 100 Stars | 15.2 | 20.6 | OpenClaw |
-| Issue Close Rate | 37.2% | 89.9% | OpenClaw |
-| Bug Label Rate (in 100-issue sample) | 68% | 17%* | OpenClaw |
-| PR Merge Rate | 85% | 49% | Hermes |
+| Open Issues per 1,000 Stars | 22.2 | **9.3** | OpenClaw |
+| Open PRs per 1,000 Stars | **39.4** | 9.3 | Hermes |
+| Issue Close Rate | 37.2% | **89.9%** | OpenClaw |
+| Bug Close Rate | 33.4% | **95.2%** | OpenClaw |
+| Commits per 1k Stars (30d) | 29.9 | **39.6** | OpenClaw |
+| Stale Open Issues | **0%** | 49% | Hermes |
+| Median Close Time | 9.2 days | 0.1 days* | Mixed |
 
-*OpenClaw bug+regression labels = 17% of the 100-issue sample.
-
-**Important context:** Hermes labels a much broader set of incoming issues as `type/bug` (including support tickets and environment issues), while OpenClaw triages many support topics into `docs`, `enhancement`, or size tags. Always read the methodology.
+*OpenClaw's close time is bot-inflated.
 
 ---
 
@@ -61,19 +79,22 @@ Stars are a rough proxy for user base. Normalizing by stars gives a fairer pictu
 
 ### Score Methodology
 
-We use a weighted scoring model where higher is better (more stable / better maintained).
+Weighted scoring model (higher = more stable / better maintained):
 
-- **Open Issues per 1k Stars** (weight −50): Fewer open issues relative to user base is better.
-- **PR Merge Rate** (weight +2): Higher merge rate signals healthier contributor workflow.
-- **Bug Label Rate in Sample** (weight −5): Lower unhandled bug density is better.
-- **Forks per 100 Stars** (weight +10): More forks relative to stars signals deeper engagement.
+- **Open Issues per 1k Stars** (weight −40): Fewer open issues relative to user base is better.
+- **Issue Close Rate** (weight +30): Higher close rate signals responsive maintenance.
+- **Bug Close Rate** (weight +25): Higher bug resolution rate signals quality focus.
+- **Median Close Time Bonus**: <1 day +20, <7 days +10, <30 days +5
+- **Stale Penalty** (−2 per % stale): Old unclosed issues drag stability down.
+- **7-Day Throughput Bonus** (+15): Closing more than you open is healthy.
+- **Commit Activity** (+5 per 1k stars): Active development is a stability signal.
 
 | Project | Score | Verdict |
 |---------|-------|---------|
-| OpenClaw | −713.20 | **Winner** |
-| Hermes Agent | −3,092.84 | Runner-up |
+| **OpenClaw** | **4,838.6** | 🏆 Winner |
+| Hermes Agent | 1,217.0 | Runner-up |
 
-The raw gap is large because Hermes carries significantly more open-issue volume per star. That said, Hermes has a much higher PR merge rate (85% vs 49%), indicating smaller, more focused contributions that land quickly.
+The gap is driven primarily by OpenClaw's dramatically higher issue/bug close rates and lower normalized open issue density. Hermes has zero stale issues, which is a strong signal of active curation, but its bug close rate (33.4%) is notably low — many `type/bug` issues may be support requests rather than verified defects.
 
 ---
 
@@ -83,55 +104,61 @@ The raw gap is large because Hermes carries significantly more open-issue volume
 |---------|-------------|----------|
 | **Core runtime** | Python + Node gateway | Node.js gateway + multi-agent isolation |
 | **Install ease** | One-line shell installer (`curl ... | bash`) | `npm` / `npx`, daemon setup optional |
-| **Platforms** | 17+ messaging platforms, Termux, Vim, Neovim, Tmux | 30+ messaging platforms, Web UI, iOS/Android |
+| **Platforms** | 17+ messaging, Termux, Vim, Neovim, Tmux | 30+ messaging, Web UI, iOS/Android |
 | **Models** | OpenAI, Anthropic, Bedrock, Kimi, OpenRouter, Ollama, vLLM | Claude, GPT-4, Gemini, DeepSeek, OpenRouter, Ollama, vLLM |
-| **Memory** | Persistent FTS5 memory, user profiles, auto skill creation | Markdown files, Mem0 plugin, per-agent isolated state |
-| **Plugins / Skills** | 40+ built-in tools + autonomous skill loop | 700+ skills, 3,200+ plugins, marketplace install |
+| **Memory** | Persistent FTS5, user profiles, auto skill creation | Markdown files, Mem0 plugin, per-agent isolated state |
+| **Plugins / Skills** | 40+ built-in tools + autonomous skill loop | 700+ skills, 3,200+ plugins, marketplace |
 | **MCP Support** | 6,000+ external apps via MCP | Supported with per-run cleanup |
 | **Voice** | Built-in voice memos, TTS | Realtime transcription, speech plugins |
-| **Security** | Sandboxed code execution, no telemetry | OpenSandbox for risky tools, CVE advisories tracked |
+| **Security** | Sandboxed code execution, no telemetry | OpenSandbox for risky tools; CVE advisories tracked |
 
-### Where Each One Wins
+### Where Each Wins
 
-- **Choose Hermes if:** You want a Python-native stack, a built-in self-improving learning loop, and the easiest one-command install on Linux/macOS.
-- **Choose OpenClaw if:** You want the biggest plugin ecosystem, multi-agent isolation, a polished web UI, and the highest community scale.
+- **Choose Hermes if:** You want the simplest one-command install, a Python-native stack, a built-in self-improving learning loop, and zero stale issues.
+- **Choose OpenClaw if:** You want the biggest plugin ecosystem (700+ skills), multi-agent isolation, a polished web UI, and the highest throughput maintenance engine — but accept bot-heavy triage.
 
 ---
 
-## Known Issues & Common Pain Points
+## Verified Pain Points (from Community Reports)
 
 ### Hermes Agent
-- High `type/bug` label density in issues (68% of sampled issues). Many are environment/setup related.
-- Open issue count is high relative to stars; close rate is lower (~37%).
-- Some users report Python environment and PATH issues during first install.
-- No built-in web UI; interaction is primarily CLI/TUI or messaging platforms.
+1. **Install/Setup Failures** — PATH issues, Python 3.12 conflicts, Windows unsupported (WSL2 only)
+2. **Gateway Disconnects** — WSL2 disconnects, port conflicts, Telegram/Discord bot unresponsiveness
+3. **Memory Leaks** — Residual gateway memory under heavy cron sessions, context loss
+4. **Local Model Failures** — Ollama GPU detection, GGUF errors, malformed JSON in multi-step chains
+5. **Tool-Call Loops** — Agent hangs, sub-agent context loss, MCP load problems
+6. **Patch Parser Bugs (Critical)** — Files >2000 lines silently truncated on UPDATE (GitHub #6831)
+7. **Docker Permission Errors** — `chown` failures in v2026.4.23 image
+8. **Security** — 9 CVEs disclosed March 2026; memory and replay capabilities were primary attack surface
+9. **Bug Close Rate** — Only 33.4% of labeled bugs are closed; 20 open P0 issues, 36 open P1 issues
 
 ### OpenClaw
-- Crossed 50,000 installs in 48 hours early in its lifecycle, leading to predictable scaling pains:
-  - Token usage spikes
-  - Repeated scanning of large codebases
-  - Default credential guardrails were initially weak
-- Setup can be more involved (Node.js, daemon registration, Docker Compose).
-- CVE-2026-25593 was reported (security advisory). Fixed in subsequent releases.
-- Resource footprint is higher (~2 GB RAM for Docker deployment).
+1. **Gateway Crash Loops** — Bonjour plugin, Mac mini M4 launchd respawn cycles, 2026.4.26 mass crashes
+2. **Plugin Regressions** — Discord/Telegram channel crashes after version bumps (2026.4.29 → 2026.5.2)
+3. **Installation Failures** — Node v22 required, npm install failures, node-gyp/Sharp issues
+4. **Performance** — `openclaw memory index --force` pegs CPU cores; memory leak risk into group chats
+5. **Security (Severe)** — CVE-2026-25253 token exfiltration, CVE-2026-33579 privilege escalation, 135,000+ instances exposed to RCE
+6. **Update Regressions** — Minor bumps repeatedly break integrations (Discord plugin, JSON5 dependency)
+7. **Bot-Driven Triage** — `clawsweeper[bot]` auto-closes many issues within hours; may mask real problems
+8. **Stale Issues** — 49% of open issues are >90 days old despite high close rate
 
 ---
 
-## Methodology & Caveats
+## Critical Caveats
 
-- **GitHub stars are not users**, but they are the best public proxy for community size.
-- **Issue labels are not uniform** across projects. Hermes uses `type/bug` broadly; OpenClaw uses `bug` narrowly and `regression` for regressions.
-- **PR merge rate** is sampled from the first 100 closed PRs returned by the API; actual lifetime rates may differ.
-- **Issue close rate** uses the GitHub Search API `is:issue` counts, which are approximate.
-- Data was collected on **2026-05-04** and will drift as both projects are actively developed.
+1. **OpenClaw's close rate is inflated by bots.** `clawsweeper[bot]` closes many issues within hours. Human-triaged resolution times may be closer to Hermes' 9.2 days.
+2. **Hermes labels support tickets as bugs.** The 68% `type/bug` rate in our sample includes environment issues, setup problems, and unverified reports. The actual verified defect rate is likely lower.
+3. **Stars are not users.** They're the best public proxy for community size, but both projects likely have many casual stargazers who never installed.
+4. **OpenClaw is younger but larger.** OpenClaw launched November 2025 vs Hermes July 2025, yet has 2.8x the stars and processes 3.7x more commits per month.
+5. **Both are actively maintained.** Both had commits on 2026-05-04. Both release frequently (Hermes ~weekly, OpenClaw almost daily).
 
 ---
 
 ## Files
 
-- `README.md` — this file
-- `index.html` — GitHub Pages site
-- `data.json` — structured dataset for programmatic use
+- `README.md` — this document
+- `index.html` — GitHub Pages website
+- `data.json` — structured, machine-readable dataset
 
 ---
 
@@ -141,4 +168,4 @@ MIT — use the data, fork the analysis, improve the weights.
 
 ---
 
-*Built by researching public APIs, docs, and community reports. No affiliation with Nous Research or the OpenClaw team.*
+*Built by researching public APIs, docs, and community reports. No affiliation with Nous Research or the OpenClaw team. Data verified via GitHub API and cross-checked with multiple sources.*

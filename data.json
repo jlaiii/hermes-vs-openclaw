@@ -2,7 +2,7 @@
   "meta": {
     "title": "Hermes Agent vs OpenClaw Stability Comparison",
     "data_date": "2026-05-04",
-    "methodology": "GitHub API raw stats normalized per star/fork sample. Labels sampled from first 100 issues."
+    "methodology": "GitHub API v3 verified. open_issues_count includes PRs; actual open issues obtained via search API (is:issue). Bug labels verified via search API. Close times sampled from 50 recently closed items, filtered to exclude PRs. Bot-driven closures noted for OpenClaw."
   },
   "projects": {
     "hermes_agent": {
@@ -12,24 +12,35 @@
       "website": "https://hermes-agent.nousresearch.com/",
       "stars": 132529,
       "forks": 20139,
-      "open_issues": 8150,
-      "total_issues": 4683,
+      "open_issues_count_api": 8161,
+      "open_issues_actual": 2944,
+      "open_prs": 5218,
+      "total_issues_all_time": 4686,
       "closed_issues": 1742,
       "issue_close_rate_pct": 37.2,
-      "merged_prs_in_sample": 85,
-      "closed_prs_in_sample": 100,
-      "pr_merge_rate_pct": 85,
-      "last_commit": "2026-05-04",
+      "bug_issues_total": 2232,
+      "bug_issues_closed": 746,
+      "bug_close_rate_pct": 33.4,
+      "open_p0": 20,
+      "open_p1": 36,
+      "contributors": 375,
+      "commits_30d": 3969,
+      "new_issues_7d": 717,
+      "closed_issues_7d": 289,
+      "median_close_time_days": 9.2,
+      "stale_open_pct": 0.0,
+      "oldest_open_issue_days": 67,
+      "releases_last_30d": 7,
       "latest_release": "v2026.4.30",
+      "last_commit": "2026-05-04",
       "created_at": "2025-07-22",
-      "labels_sample": {
-        "type/bug": 68,
-        "type/feature": 19,
-        "type/docs": 4,
-        "P0": 1,
-        "P1": 3,
-        "P2": 39,
-        "P3": 55
+      "labels_open_sample_100": {
+        "bug": 15,
+        "feature": 9,
+        "docs": 1,
+        "other": 2,
+        "none": 0,
+        "total_filtered": 27
       }
     },
     "openclaw": {
@@ -39,49 +50,80 @@
       "website": "https://openclaw.ai/",
       "stars": 368249,
       "forks": 75827,
-      "open_issues": 6865,
-      "total_issues": 33837,
-      "closed_issues": 30410,
+      "open_issues_count_api": 6865,
+      "open_issues_actual": 3427,
+      "open_prs": 3442,
+      "total_issues_all_time": 33848,
+      "closed_issues": 30421,
       "issue_close_rate_pct": 89.9,
-      "merged_prs_in_sample": 49,
-      "closed_prs_in_sample": 100,
-      "pr_merge_rate_pct": 49,
-      "last_commit": "2026-05-04",
+      "bug_issues_total": 10399,
+      "bug_issues_closed": 9899,
+      "bug_close_rate_pct": 95.2,
+      "open_regression": 100,
+      "open_bug": 100,
+      "contributors": 366,
+      "commits_30d": 14565,
+      "new_issues_7d": 2018,
+      "closed_issues_7d": 2170,
+      "median_close_time_days": 0.1,
+      "stale_open_pct": 49.0,
+      "oldest_open_issue_days": 123,
+      "releases_last_30d": 10,
       "latest_release": "v2026.5.4-beta.1",
+      "last_commit": "2026-05-04",
       "created_at": "2025-11-24",
-      "labels_sample": {
-        "bug": 10,
-        "regression": 7,
-        "enhancement": 4,
-        "docs": 15,
-        "size:XS": 14,
-        "size:S": 16,
-        "size:M": 18,
-        "size:L": 4,
-        "size:XL": 3
+      "bot_heavy_closures": true,
+      "labels_open_sample_100": {
+        "bug": 9,
+        "regression": 0,
+        "enhancement": 3,
+        "docs": 0,
+        "other": 1,
+        "none": 37,
+        "total_filtered": 50
       }
     }
   },
   "normalized": {
     "open_issues_per_1000_stars": {
-      "hermes_agent": 61.5,
-      "openclaw": 18.6
+      "hermes_agent": 22.2,
+      "openclaw": 9.3,
+      "better": "OpenClaw"
     },
-    "forks_per_100_stars": {
-      "hermes_agent": 15.2,
-      "openclaw": 20.6
+    "open_prs_per_1000_stars": {
+      "hermes_agent": 39.4,
+      "openclaw": 9.3,
+      "better": "Hermes"
     },
-    "bug_label_rate_pct": {
-      "hermes_agent": 68,
-      "openclaw": 17
+    "issue_close_rate": {
+      "hermes_agent": 37.2,
+      "openclaw": 89.9,
+      "better": "OpenClaw"
+    },
+    "bug_close_rate": {
+      "hermes_agent": 33.4,
+      "openclaw": 95.2,
+      "better": "OpenClaw"
+    },
+    "commits_per_1000_stars_30d": {
+      "hermes_agent": 29.9,
+      "openclaw": 39.6,
+      "better": "OpenClaw"
     }
   },
   "rankings": {
     "overall_stability_score": {
-      "openclaw": -713.20,
-      "hermes_agent": -3092.84
+      "openclaw": 4838.6,
+      "hermes_agent": 1217.0
     },
     "winner": "OpenClaw",
-    "notes": "Score based on weighted model: lower open issues per star, lower bug density, higher forks per star. Hermes wins on PR merge rate."
+    "methodology_note": "Weighted model: (-40 x open_issues/1k_stars) + (30 x issue_close_rate) + (25 x bug_close_rate) + close_time_bonus + stale_penalty + throughput_bonus + (5 x commits/1k_stars). Higher = more stable.",
+    "key_caveats": [
+      "OpenClaw's median close time of 0.1 days is heavily driven by clawsweeper[bot] auto-closing issues; human-triaged issues may differ.",
+      "Hermes open_issues/1k_stars (22.2) is higher than OpenClaw (9.3), but Hermes has far more open PRs per star, indicating active contribution backlog.",
+      "Hermes has 0% stale open issues (>90 days); OpenClaw has 49% stale, suggesting bot auto-closure doesn't catch everything or older issues are deprioritized.",
+      "Hermes bug close rate (33.4%) is low; many type/bug issues may be support requests rather than verified defects.",
+      "Both projects have 366-375 contributors, but OpenClaw processes 3.7x more commits in 30 days."
+    ]
   }
 }
